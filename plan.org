@@ -1,0 +1,32 @@
+
+# TODO
+* DONE [2/2] extract mapping coordinates from primer flie
+ - [X] map primers to reference
+ - [X] extract info
+
+*  TODO [/] see if the alternate overlaps with primer
+    - [ ] if not, return non-overlap PrimerCount (Zeros) 
+    - [ ] if yes, look at all bam-rows at that position (using pysam)
+* TODO [3/5] create a PrimerCount by looking at all bam-rows for the alternate (when overlapped above)
+   1. [ ]  do below for each bam-row and sum afterwards }
+   2. [X] get the alt position on the query using `calc_query_position`
+   3. [X] report the base (is it alt?)
+   4. [X] report if within End (using thresh)
+   5. [ ] then `reduce` the above }
+*  TODO [1/2] see if the alternate overlaps with primer
+      - [X] if not, return non-overlap PrimerCount (Zeros) 
+      - [ ] if yes, look at all bam-rows at that position (using pysam)
+* TODO [0/3] create a PrimerCount by looking at all bam-rows for the alternate (when overlapped above)
+       { do below for each bam-row and sum afterwards }
+      1. [ ] get the alt position on the query using `calc_query_position`
+      2. [ ] report the base (is it alt?)
+      3. [ ] report if within End (using thresh)
+      { then `reduce` the above }
+
+* TODO [/] Extra Features
+ - [ ] Report if it's soft-clipped on relevant end
+ - [ ] Handle possibility of multiple overlapping primers
+ - [ ] Handle flu primers, may map to wrong/mulitple segments  [[./vartable/primers.py::def primer_count_at_position]]
+ - [ ] If the read has been hard-clipped that would throw off our nearness to end 
+ - [ ] Others [[./vartable/primers.py::TODO][OTHER TODOS]]
+    # [[./vartable/primers.py::66]] 
