@@ -3,30 +3,34 @@
 * DONE [2/2] extract mapping coordinates from primer flie
  - [X] map primers to reference
  - [X] extract info
+* TODO [/] Main Function
+ - [ ] Map Primers to reference
+ - [ ] match reference ID? or is that done in: Actually, can I ignore for now?
+ - [ ] Pull out first reference_id and use it
 
-*  TODO [/] see if the alternate overlaps with primer
-    - [ ] if not, return non-overlap PrimerCount (Zeros) 
-    - [ ] if yes, look at all bam-rows at that position (using pysam)
-* TODO [3/5] create a PrimerCount by looking at all bam-rows for the alternate (when overlapped above)
-   1. [ ]  do below for each bam-row and sum afterwards }
+* TODO [/] Integrate with vartable.py
+ - [ ] post-process PrimerInfo
+   + [ ] see what bamrc does
+   + [ ] duplicate it
+
+*  TODO [2/2] see if the alternate overlaps with primer
+    - [X] if not, return non-overlap PrimerCount (Zeros) 
+    - [X] if yes, look at all bam-rows at that position (using pysam)
+* TODO [4/5] create a PrimerCount by looking at all bam-rows for the alternate (when overlapped above)
+   1. [X]  do below for each bam-row and sum afterwards }
    2. [X] get the alt position on the query using `calc_query_position`
    3. [X] report the base (is it alt?)
    4. [X] report if within End (using thresh)
    5. [ ] then `reduce` the above }
-*  TODO [1/2] see if the alternate overlaps with primer
-      - [X] if not, return non-overlap PrimerCount (Zeros) 
-      - [ ] if yes, look at all bam-rows at that position (using pysam)
-* TODO [0/3] create a PrimerCount by looking at all bam-rows for the alternate (when overlapped above)
-       { do below for each bam-row and sum afterwards }
-      1. [ ] get the alt position on the query using `calc_query_position`
-      2. [ ] report the base (is it alt?)
-      3. [ ] report if within End (using thresh)
-      { then `reduce` the above }
-
+* TODO [/] Testing
+ - [ ] Test Mark's sample /vdb/instr/novaseq/01/Share/for_mike/Projects
 * TODO [/] Extra Features
  - [ ] Report if it's soft-clipped on relevant end
  - [ ] Handle possibility of multiple overlapping primers
  - [ ] Handle flu primers, may map to wrong/mulitple segments  [[./vartable/primers.py::def primer_count_at_position]]
  - [ ] If the read has been hard-clipped that would throw off our nearness to end 
- - [ ] Others [[./vartable/primers.py::TODO][OTHER TODOS]]
+ - [ ] Others [[./vartable/primers.py::TODO(0|1|2|3|4|5|6|7)][OTHER TODOS (Numbered)]]
     # [[./vartable/primers.py::66]] 
+
+* TODO [/] Other
+ - [ ] 180GB RAM
