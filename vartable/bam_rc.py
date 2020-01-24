@@ -2,7 +2,7 @@ from typing import NewType, List, Union, NamedTuple
 
 from typing_extensions import Literal, TypedDict
 from Bio.Seq import Seq
-
+PRINT_BAMRC_TOOL = True
 Fraction = NewType('Fraction', float)
 
 A = Literal['A']
@@ -73,6 +73,8 @@ def parse_entry(s: str) -> BRCEntry:
   return cast(BRCEntry, result)
 
 def parse_line(s: str) -> BRCRow:
+  if PRINT_BAMRC_TOOL:
+    print(s)
   _fs = s.split('\t')
   # TODO: What's up with below???
   fs = list(filter(lambda x: not x.startswith(('-', '+')), _fs))
