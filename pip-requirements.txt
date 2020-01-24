@@ -1,3 +1,4 @@
 toolz
 biopython
 PyVCF
+pysam
