@@ -2,15 +2,16 @@
 import csv
 from toolz.dicttoolz import merge, dissoc, merge_with, valfilter, keyfilter #done
 import vcf #done
-from typing import Tuple, Dict, List, Iterator, Iterable, Any, Callable, NamedTuple, BinaryIO
+from typing import Tuple, Dict, List, Iterator, Iterable, Any, Callable, NamedTuple, BinaryIO, Sequence
 import itertools
 from functools import partial 
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
-
+import os.path
 from . import translation
 from .bam_rc import bam_readcount_pos, BRCRow, BRCEntry
+from . import multi_segment
 
 HEADERS = ['Reference ID', 'Position', 'Total Depth', 'Ref Base', 'Alt Base', 'Ref Frequency', 'Alt Frequency', 'Codon', 'Codon Type']
 AMBIGUITY_TABLE = { 'A': 'A', 'T': 'T', 'G': 'G', 'C': 'C', 'N': 'N', 'AC': 'M', 'AG': 'R', 'AT': 'W', 'CG': 'S', 'CT': 'Y', 'GT': 'K', 'ACG': 'V', 'ACT': 'H', 'AGT': 'D', 'CGT': 'B', 'ACGT': 'N' }
@@ -40,11 +41,12 @@ def flatten_vcf_record(rec):
 
 
 def write_tsv(out_path: str, xs: List[Dict[str, Any]], headers: List[str]) -> None:
-  with open(out_path, 'w') as o:
-     writer = csv.DictWriter(o, headers, delimiter='\t')
-     writer.writeheader()
-     for row in xs:
-       writer.writerow(row)
+     headers.sort()
+     with open(out_path, 'w') as o:
+        writer = csv.DictWriter(o, headers, delimiter='\t')
+        writer.writeheader()
+        for row in xs:
+          writer.writerow(row)
 
 import argparse
 
@@ -113,21 +115,9 @@ from typing import Union,Dict
 Row = Dict[str, Union[str, int, float]]
 RCRow = Dict[str, Union[int, float]]
 
-
-def main() -> None:
-  parser = argparse.ArgumentParser(description='Create a table from VCF with summary info. ')
-  parser.add_argument('vcf_path', help='VCF input, from lofreq or ngs_mapper.base_caller')
-  parser.add_argument('--type', dest='type', required=True, choices=['lofreq', 'base_caller'], help='Was this created with lofreq or standard ngs_mapper?')
-  parser.add_argument('--out',  dest='out', required=True,  help='output TSV file')
-  parser.add_argument('--mindepth', dest='mind', type=int, required=True, help='Minimum depth to filter out variants.')
-  parser.add_argument('--minpercent', dest='minp', type=int, required=True, help='Minimum percentage as an integer to filter out variants.')
-  parser.add_argument('--bam', dest='bam', required=False, help='Optional indexed BAM input.')
-  parser.add_argument('--ref', dest='ref', required=False, help='Reference fasta file required for BAM processing.')
-  parser.add_argument('--genbank', dest='genbank', required=False, help='Optional genbank file with CDS feature info.')
-  parser.add_argument('--cds-rev', dest='cds_rev', action='append', metavar=('start', 'end'), nargs=2, required=False, help='Optional: zero-based coordinates for a simple cds translated on the reverse strand. Requires reference.')
-  parser.add_argument('--cds-fwd', dest='cds_fwd', action='append', metavar=('start', 'end'), nargs=2, required=False, help='Optional: zero-based coordinates for a simple cds translated on the forward strand. Requires reference.')
-  args = parser.parse_args()
-
+    
+  
+def dispatch_args(args: argparse.Namespace) -> Sequence[str]:
   if args.bam:
       assert args.ref, "Reference required with Bam input!"
   if args.type == 'lofreq':
@@ -165,6 +155,7 @@ def main() -> None:
               del d[k]
       fields = list(translation.TResult.__dataclass_fields__.keys())
       fields = [f for f in fields if not (f in dupe_fields)]
+      global HEADERS
       HEADERS = HEADERS[:] + fields
 
   if args.bam:
@@ -182,10 +173,31 @@ def main() -> None:
       HEADERS = ['Reference ID', 'Position', 'Total Depth', 'Ref Base', 'Alt Base', 'Ref Frequency', 'Alt Frequency', 'Codon', 'Codon Type']
       HEADERS = HEADERS[:] + [ f for f in BRCEntry._fields if f != 'base'] 
   write_tsv(args.out, dicts, HEADERS[:])
+  return HEADERS[:]
 # PAC is a lit, because will report multiple Alleles.  i.e.
 # AY487947.1    142     .       A       C,G     .       .       DP=2087;RC=2083;RAQ=37;PRC=100;AC=1,3;AAQ=37,37;PAC=0,0;CBD=2083;CB=A
 # Flu is a special case again. have to groupby, map, and flatten; should be an
 # exmaple of this in . . . . no, actually, just print the reference ID
+
+def main() -> None:
+  parser = argparse.ArgumentParser(description='Create a table from VCF with summary info. ')
+  parser.add_argument('vcf_path', help='VCF input, from lofreq or ngs_mapper.base_caller')
+  parser.add_argument('--type', dest='type', required=True, choices=['lofreq', 'base_caller'], help='Was this created with lofreq or standard ngs_mapper?')
+  parser.add_argument('--out',  dest='out', required=True,  help='output TSV file')
+  parser.add_argument('--mindepth', dest='mind', type=int, required=True, help='Minimum depth to filter out variants.')
+  parser.add_argument('--minpercent', dest='minp', type=int, required=True, help='Minimum percentage as an integer to filter out variants.')
+  parser.add_argument('--bam', dest='bam', required=False, help='Optional indexed BAM input.')
+  parser.add_argument('--ref', dest='ref', required=False, help='Reference fasta file required for BAM processing.')
+  parser.add_argument('--genbank', dest='genbank', required=False, help='Optional genbank file with CDS feature info.')
+  parser.add_argument('--cds-rev', dest='cds_rev', action='append', metavar=('start', 'end'), nargs=2, required=False, help='Optional: zero-based coordinates for a simple cds translated on the reverse strand. Requires reference.')
+  parser.add_argument('--cds-fwd', dest='cds_fwd', action='append', metavar=('start', 'end'), nargs=2, required=False, help='Optional: zero-based coordinates for a simple cds translated on the forward strand. Requires reference.')
+  parser.add_argument('--multi-segment', dest='multi_segment', default=False, action='store_true')
+  parser.add_argument('--allow-overwrite', dest='allow_overwrite', default=False, action='store_true')
+  args = parser.parse_args()
+  multi_segment.validate_file_overwrites([args])
+  if args.multi_segment:
+      return multi_segment.dispatch(args, dispatch_args, write_tsv)
+  return dispatch_args(args)
 
 if __name__ == '__main__':
     main()
