@@ -190,11 +190,12 @@ if __name__ == '__main__':
   sam = 'testdata/primers.sam'
   res = get_coordinates_from_bam(refid, sam)
   print(res)
-  bam = '/vdb/instr/novaseq/01/Share/for_mike/Projects/A18x3210/A18x3210.bam'
-  vcf = '/vdb/instr/novaseq/01/Share/for_mike/Projects/A18x3210/A18x3210.bam.vcf'
-  ref = '/vdb/instr/novaseq/01/Share/for_mike/Projects/A18x3210/JEV_XZ0934.fasta'
-  primer = '/vdb/instr/novaseq/01/Share/for_mike/Projects/primer.fasta'
-  reference_id = 'JF915894.1'
+  bam = '../testdata/fullsample.bam'
+  vcf = '../testdata/fullsample.bam'
+  ref = '../testdata/Den1__WestPac__1997.fasta'
+  primer = '../testdata/read1.fasta'
+  # reference_id = 'JF915894.1'
+  reference_id = 'Den1/U88535_1/WestPac/1997/Den1_1'
   dicts = base_caller_process(vcf, 10, 10, '')
   alts = list((d for d in dicts if d['Alt Base'] != '*'))
   ref_id = listdicts[0]['Reference ID'] # TODO: multiple refs in a single vcf
